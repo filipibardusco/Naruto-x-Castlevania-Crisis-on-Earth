@@ -19,13 +19,20 @@ RUNNING = True
 #Loading images
 playerSprite = image.load("coffee.jpg")
 playerSprite = transform.scale(playerSprite, (20, 20))
-backgroundImage = image.load("testBackground.jpg")
-backgroundImage = transform.scale(backgroundImage, (2000, 800))
+backgroundImages = ["testBackground.jpg"]
+levelSizes = [(2000, 800)] #List of the sizes of each level to use to transform each image, and set limits to how far our character can go
+backgrounds = []
+for images in backgroundImages:
+    backgrounds.append(image.load(images))
+for b in range(len(backgrounds)):
+    backgrounds[b] = transform.scale(backgrounds[b], levelSizes[b])
+
+
 
 #Defining player variables
 xPos = 20
 yPos = 780
-HURTBOX = 0 #hurtbox[:2] to be adjusted depending on player size
+HURTBOX = 0
 XSPEED = 1
 YSPEED = 2
 ONGROUND = 3
@@ -36,8 +43,9 @@ player = [Rect(xPos, yPos, 20, 20), 0, 0, True, 20, 100, playerSprite]
 
 
 #Defining basic functions
-def drawScene(guy): #Function taken and modified from the scroll in class program
+def drawScene(guy, backgroundImage): #Function taken and modified from the scroll in class program
     """ draws the current state of the game """
+    
     offset = player[SCREENX] - xPos
     screen.blit(backgroundImage, (offset,0))  #Blitting background
     #for pl in plats:
@@ -47,7 +55,7 @@ def drawScene(guy): #Function taken and modified from the scroll in class progra
         
     display.flip()
 
-def moveGuy(guy): #Function taken and modified from the scroll in class program
+def moveGuy(guy, limit = 0): #Function taken and modified from the scroll in class program
     keys = key.get_pressed()
     global yPos
     global xPos
@@ -67,11 +75,13 @@ def moveGuy(guy): #Function taken and modified from the scroll in class program
     if yPos >= 450:
         yPos = 450
         guy[YSPEED] = 0
-        guy[ONGROUND]=True
+        guy[ONGROUND] = True
     guy[YSPEED]+=.7     # add current speed to Y
 
 #defining level functions
-
+def hub():
+    drawScene(player, backgrounds[0])
+    moveGuy(player, levelSizes[0])
 
 
 
@@ -81,8 +91,8 @@ while RUNNING:
     for evt in event.get():
         if evt.type == QUIT: 
             RUNNING = False
-    drawScene(player)
-    moveGuy(player)
+    hub()
+    
     print(player)
 
     display.flip()
