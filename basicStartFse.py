@@ -4,6 +4,10 @@ from random import *
 from math import *
 from tkinter import *
 
+#Defining screen variables
+SIZE = (1000, 800)
+screen = display.set_mode(SIZE)
+
 #Defining colours and other constants
 RED = (255, 0, 0)
 BLUE = (0, 255, 0)
@@ -12,18 +16,59 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RUNNING = True
 
+#Loading images
+playerSprite = image.load("coffee.jpg")
+playerSprite = transform.scale(playerSprite, (20, 20))
+backgroundImage = image.load("testBackground.jpg")
+backgroundImage = transform.scale(backgroundImage, (2000, 800))
+
 #Defining player variables
 xPos = 20
-yPos = 20
-hurtbox = Rect(xPos, yPos, 20, 20) #hurtbox[:2] to be adjusted depending on player size
-xSpeed = 0
-ySpeed = 0
-health = 100
-player = [hurtbox, xSpeed, ySpeed, health]
+yPos = 780
+HURTBOX = 0 #hurtbox[:2] to be adjusted depending on player size
+XSPEED = 1
+YSPEED = 2
+ONGROUND = 3
+SCREENX = 4
+HEALTH = 5
+SPRITE = 6
+player = [Rect(xPos, yPos, 20, 20), 0, 0, True, 20, 100, playerSprite]
 
-#Defining screen variables
-SIZE = (1000, 800)
-screen = display.set_mode(SIZE)
+
+#Defining basic functions
+def drawScene(guy): #Function taken and modified from the scroll in class program
+    """ draws the current state of the game """
+    offset = player[SCREENX] - xPos
+    screen.blit(backgroundImage, (offset,0))  #Blitting background
+    #for pl in plats:
+    #    p = pl.move(offset,0)        
+    #    draw.rect(screen,(111,111,111),p)
+    screen.blit(player[SPRITE], (player[SCREENX], yPos))
+        
+    display.flip()
+
+def moveGuy(guy): #Function taken and modified from the scroll in class program
+    keys = key.get_pressed()
+    global yPos
+    global xPos
+    if keys[K_LEFT] and xPos > 20:
+        xPos -= 10
+        if guy[SCREENX] > 50:
+            guy[SCREENX] -= 10
+    if keys[K_RIGHT] and xPos < 1800:
+        xPos += 10
+        if guy[SCREENX] < (900):
+            guy[SCREENX] += 10
+    if keys[K_SPACE] and guy[ONGROUND]:
+        guy[YSPEED] = -10
+        guy[ONGROUND] = False
+
+    yPos += guy[YSPEED]     # add current speed to Y
+    if yPos >= 450:
+        yPos = 450
+        guy[YSPEED] = 0
+        guy[ONGROUND]=True
+    guy[YSPEED]+=.7     # add current speed to Y
 
 #defining level functions
 
@@ -36,13 +81,14 @@ while RUNNING:
     for evt in event.get():
         if evt.type == QUIT: 
             RUNNING = False
-    hurtbox[0] += 1
-    hurtbox = Rect(xPos, yPos, 20, 20)
-    player = [hurtbox, xSpeed, ySpeed, health]
+    drawScene(player)
+    moveGuy(player)
     print(player)
 
+    display.flip()
 
-#is this working?
+
+
 
 
 
