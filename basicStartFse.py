@@ -36,16 +36,17 @@ for b in range(len(backgrounds)):
 
 #Defining player variables
 invincible = False
-XPOS = 7
-YPOS = 8
-HURTBOX = 0
-XSPEED = 1
-YSPEED = 2
-ONGROUND = 3
-SCREENX = 4 
-HEALTH = 5
-SPRITE = 6
-player = [Rect(500, 780, 20, 20), 0, 0, True, 500, 100, playerSprite, 500, 780]
+XPOS = 0
+YPOS = 1
+HURTBOX = 2
+XSPEED = 3
+YSPEED = 4
+ONGROUND = 5
+SCREENX = 6
+HEALTH = 7
+SPRITE = 8
+ACTIVE = 2
+player = [500, 780, Rect(500, 780, 20, 20), 0, 0, True, 500, 100, playerSprite]
 
 
 #Defining basic functions
@@ -137,42 +138,70 @@ def checkCollide(guy,plats, blocks, enemies): #Function taken and modified from 
 
     for enemy in enemies[0]:
         if enemies[3]:
-            if rec.colliderect(Rect(enemy[0], enemy[1], skeletonWidth, skeletonHeight)) and invincible == False:
+            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], skeletonWidth, skeletonHeight)) and invincible == False:
                 player[HEALTH] -= 1
     for enemy in enemies[1]:
         if enemies[4]:
-            if rec.colliderect(Rect(enemy[0], enemy[1], zombieWidth, zombieHeight)) and invincible == False:
+            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], zombieWidth, zombieHeight)) and invincible == False:
                 player[HEALTH] -= 3
     for enemy in enemies[2]:
         if enemies[5]:
-            if rec.colliderect(Rect(enemy[0], enemy[1], batsWidth, batsHeight)) and invincible == False:
+            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], batsWidth, batsHeight)) and invincible == False:
                 player[HEALTH] -= 1
 
 def spawnEnemies(positionsS, positionsZ, positionsB, skeletons, zombies, bats, offset):
     "Spawns in enemies for a given level at the specified positions"
     if skeletons:
         for p in positionsS:
-            draw.rect(screen, WHITE, Rect(int(p[0]) + offset, int(p[1]), skeletonWidth, skeletonHeight)) #Change to blit the skeleton image
+            draw.rect(screen, WHITE, Rect(int(p[XPOS]) + offset, int(p[YPOS]), skeletonWidth, skeletonHeight)) #Change to blit the skeleton image
     if zombies:
         for p in positionsZ:
-            draw.rect(screen, GREEN, Rect(int(p[0]) + offset, int(p[1]), zombieWidth, zombieHeight))
+            draw.rect(screen, GREEN, Rect(int(p[XPOS]) + offset, int(p[YPOS]), zombieWidth, zombieHeight))
     if bats:
         for p in positionsB:
-            draw.rect(screen, BLACK, Rect(int(p[0]) + offset, int(p[1]), batsWidth, batsHeight))                  
-def enemiesAction(positionsS, positionsZ, positionsB, skeletons, zombies, bats):
-    if zombies == True:
+            draw.rect(screen, BLACK, Rect(int(p[XPOS]) + offset, int(p[YPOS]), batsWidth, batsHeight))                  
+def enemiesAction(positionsS, positionsZ, positionsB, skeletons, zombies, bats, blocks):
+    if zombies:
         for x in positionsZ:
-            if x[0] > player[XPOS] and x[0] - player[XPOS] <= SIZE[0]:
-                x[0] -= 0.7
-            elif x[0] < player[XPOS]:
-                x[0] += 0.7
+            x[ACTIVE] = True
+            if x[XPOS] > player[XPOS]:
+                for b in blocks:
+                    if x[XPOS] > b.right and player[XPOS] < b.right:
+                        x[ACTIVE] = False
+                if x[ACTIVE]:
+                    x[XPOS] -= 0.7
+            elif x[XPOS] < player[XPOS] and x[ACTIVE]:
+                for b in blocks:
+                    if x[XPOS] < b.left and player[XPOS] > b.left:
+                        x[ACTIVE] = False
+                if x[ACTIVE]:
+                    x[XPOS] += 0.7
+    if bats:
+        for x in positionsB:
+            x[ACTIVE] = False
+            if player[XPOS] - 350 < x[XPOS] < player[XPOS] + 350 and player[YPOS] - 250 < x[YPOS] < player[YPOS] + 250:
+                x[ACTIVE] = True
+            if x[ACTIVE]:
+                if player[XPOS] > x[XPOS]:
+                    x[XPOS] += (randint(1, 15) / 4)
+                elif player[XPOS] < x[XPOS]:
+                    x[XPOS] -= (randint(1, 15) / 4)
+                if player[YPOS] > x[YPOS]:
+                    x[YPOS] += (randint(-3, 8) / 2)
+                elif player[YPOS] < x[YPOS]:
+                    x[YPOS] -= (randint(-3, 8) / 2)
+    if zombies:
+        for x in positionsS:
+            if x[YPOS] + 300 > player[YPOS] > x[YPOS] - 300:
+                print("Active skeleton")
+                
     
 #defining level functions
 def hub():
     drawScene(player, backgrounds[0], hubPlats, (86,176,0), hubBlocks, (83, 49, 24), hubEnemies)
     moveGuy(player, levelSizes[0], hubBlocks)
     checkCollide(player, hubPlats, hubBlocks, hubEnemies)
-    enemiesAction(hubEnemies[0], hubEnemies[1], hubEnemies[2], hubEnemies[3], hubEnemies[4], hubEnemies[5])
+    enemiesAction(hubEnemies[0], hubEnemies[1], hubEnemies[2], hubEnemies[3], hubEnemies[4], hubEnemies[5], hubBlocks)
 
     if player[YPOS] <= 10:
         print("Level: up")
@@ -184,7 +213,7 @@ def hub():
 #defining level variables
 hubPlats = [Rect(130, 700, 100, 10), Rect(530, 700, 100, 10), Rect(330, 550, 100, 10), Rect(130, 400, 100, 10), Rect(530, 400, 100, 10), Rect(970, 700, 100, 10), Rect(1370, 700, 100, 10), Rect(1170, 550, 100, 10), Rect(970, 400, 100, 10), Rect(1370, 400, 100, 10), Rect(750, 100, 100, 10)]
 hubBlocks = [Rect(-110, 0, 210, 350), Rect(-110, 450, 210, 350), Rect(750, 250, 100, 600), Rect(1500, 0, 210, 350), Rect(1500, 450, 210, 350), Rect(0, 0, 750, 50), Rect(850, 0, 970, 50)]
-hubEnemies = ([[300, 740]], [[1200, 740]], [[775, 200]], True, True, True)
+hubEnemies = ([[300, 740, True]], [[1200, 740, True], [200, 740, True]], [[775, 200, True]], True, True, True)
 
 
 
@@ -194,7 +223,6 @@ while RUNNING:
     for evt in event.get():
         if evt.type == QUIT: 
             RUNNING = False
-    print(player[HEALTH])
     hub()
 
     display.flip()
