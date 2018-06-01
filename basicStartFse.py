@@ -35,7 +35,7 @@ for b in range(len(backgrounds)):
 
 
 #Defining player variables
-invincible = False
+
 XPOS = 0
 YPOS = 1
 HURTBOX = 2
@@ -46,7 +46,10 @@ SCREENX = 6
 HEALTH = 7
 SPRITE = 8
 ACTIVE = 2
+PROJECTILES = 3
 player = [500, 780, Rect(500, 780, 20, 20), 0, 0, True, 500, 100, playerSprite]
+
+#Defining other miscellaneous variables:
 
 
 #Defining basic functions
@@ -63,6 +66,7 @@ def drawScene(guy, backgroundImage, plats, platColours, blocks, blockColours, en
         b = bl.move(offset,0)        
         draw.rect(screen,blockColours,b)
     spawnEnemies(enemies[0], enemies[1], enemies[2], enemies[3], enemies[4], enemies[5], offset)
+    enemiesAction(enemies[0], enemies[1], enemies[2], enemies[3], enemies[4], enemies[5], blocks, offset)
     
     screen.blit(player[SPRITE], (player[SCREENX], guy[YPOS]))
     draw.rect(screen, GREEN, Rect(100, 50, guy[HEALTH], 20))
@@ -138,15 +142,15 @@ def checkCollide(guy,plats, blocks, enemies): #Function taken and modified from 
 
     for enemy in enemies[0]:
         if enemies[3]:
-            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], skeletonWidth, skeletonHeight)) and invincible == False:
+            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], skeletonWidth, skeletonHeight)):
                 player[HEALTH] -= 1
     for enemy in enemies[1]:
         if enemies[4]:
-            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], zombieWidth, zombieHeight)) and invincible == False:
+            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], zombieWidth, zombieHeight)):
                 player[HEALTH] -= 3
     for enemy in enemies[2]:
         if enemies[5]:
-            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], batsWidth, batsHeight)) and invincible == False:
+            if rec.colliderect(Rect(enemy[XPOS], enemy[YPOS], batsWidth, batsHeight)):
                 player[HEALTH] -= 1
 
 def spawnEnemies(positionsS, positionsZ, positionsB, skeletons, zombies, bats, offset):
@@ -160,7 +164,7 @@ def spawnEnemies(positionsS, positionsZ, positionsB, skeletons, zombies, bats, o
     if bats:
         for p in positionsB:
             draw.rect(screen, BLACK, Rect(int(p[XPOS]) + offset, int(p[YPOS]), batsWidth, batsHeight))                  
-def enemiesAction(positionsS, positionsZ, positionsB, skeletons, zombies, bats, blocks):
+def enemiesAction(positionsS, positionsZ, positionsB, skeletons, zombies, bats, blocks, offset):
     if zombies:
         for x in positionsZ:
             x[ACTIVE] = True
@@ -190,30 +194,58 @@ def enemiesAction(positionsS, positionsZ, positionsB, skeletons, zombies, bats, 
                     x[YPOS] += (randint(-3, 8) / 2)
                 elif player[YPOS] < x[YPOS]:
                     x[YPOS] -= (randint(-3, 8) / 2)
-    if zombies:
+
+                if randint(0, 60) == 1:
+                    if player[XPOS] > x[XPOS]:
+                        fireDirection = 1
+                    else:
+                        fireDirection = -1
+                    x[PROJECTILES].append([x[XPOS], x[YPOS], 10, 10, fireDirection])
+            for fball in x[PROJECTILES]:
+                fireball = Rect(fball[0] + offset, fball[1], fball[2], fball[3])
+                draw.rect(screen, RED, fireball)
+                fball[0] += fball[4] * 5
+                if player[HURTBOX].colliderect(Rect(fball[0], fball[1], fball[2], fball[3])):
+                    player[HEALTH] -= 15
+                    x[PROJECTILES].pop(x[PROJECTILES].index(fball))
+    if skeletons:
         for x in positionsS:
-            if x[YPOS] + 300 > player[YPOS] > x[YPOS] - 300:
-                print("Active skeleton")
-                
-    
+            x[ACTIVE] = False
+            if x[YPOS] + 200 > player[YPOS] > x[YPOS] - 200 and x[XPOS] + 1100 > player[XPOS] > x[XPOS] - 1100:
+                x[ACTIVE] = True
+                if randint(0, 60) == 1:
+                    if player[XPOS] > x[XPOS]:
+                        boneDirection = 1
+                    else:
+                        boneDirection = -1
+                    x[PROJECTILES].append([x[XPOS], x[YPOS], 20, 20, boneDirection])
+        
+            for bones in x[PROJECTILES]:
+                bone = Rect(bones[0] + offset, bones[1], bones[2], bones[3])
+                draw.rect(screen, WHITE, bone)
+                bones[0] += bones[4] * 5
+                if player[HURTBOX].colliderect(Rect(bones[0], bones[1], bones[2], bones[3])):
+                    player[HEALTH] -= 10
+                    x[PROJECTILES].pop(x[PROJECTILES].index(bones))
 #defining level functions
 def hub():
-    drawScene(player, backgrounds[0], hubPlats, (86,176,0), hubBlocks, (83, 49, 24), hubEnemies)
-    moveGuy(player, levelSizes[0], hubBlocks)
-    checkCollide(player, hubPlats, hubBlocks, hubEnemies)
-    enemiesAction(hubEnemies[0], hubEnemies[1], hubEnemies[2], hubEnemies[3], hubEnemies[4], hubEnemies[5], hubBlocks)
-
     if player[YPOS] <= 10:
         print("Level: up")
-    if player[XPOS] <= 20:
+    elif player[XPOS] <= 20:
         print("Level: Left")
-    if player[XPOS] >= 1600:
+    elif player[XPOS] >= 1600:
         print("Level: Right")
+    else:
+        drawScene(player, backgrounds[0], hubPlats, (86,176,0), hubBlocks, (83, 49, 24), hubEnemies)
+        moveGuy(player, levelSizes[0], hubBlocks)
+        checkCollide(player, hubPlats, hubBlocks, hubEnemies)
+        #enemiesAction(hubEnemies[0], hubEnemies[1], hubEnemies[2], hubEnemies[3], hubEnemies[4], hubEnemies[5], hubBlocks)
 
+    
 #defining level variables
 hubPlats = [Rect(130, 700, 100, 10), Rect(530, 700, 100, 10), Rect(330, 550, 100, 10), Rect(130, 400, 100, 10), Rect(530, 400, 100, 10), Rect(970, 700, 100, 10), Rect(1370, 700, 100, 10), Rect(1170, 550, 100, 10), Rect(970, 400, 100, 10), Rect(1370, 400, 100, 10), Rect(750, 100, 100, 10)]
 hubBlocks = [Rect(-110, 0, 210, 350), Rect(-110, 450, 210, 350), Rect(750, 250, 100, 600), Rect(1500, 0, 210, 350), Rect(1500, 450, 210, 350), Rect(0, 0, 750, 50), Rect(850, 0, 970, 50)]
-hubEnemies = ([[300, 740, True]], [[1200, 740, True], [200, 740, True]], [[775, 200, True]], True, True, True)
+hubEnemies = ([[300, 740, True, []]], [[1200, 740, True]], [[775, 200, True, []]], True, True, True)
 
 
 
@@ -224,6 +256,7 @@ while RUNNING:
         if evt.type == QUIT: 
             RUNNING = False
     hub()
+    
 
     display.flip()
 
