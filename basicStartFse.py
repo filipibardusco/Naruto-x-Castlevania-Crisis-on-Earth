@@ -35,6 +35,7 @@ for b in range(len(backgrounds)):
 
 
 #Defining player variables
+
 invincible = False
 XPOS = 0
 YPOS = 1
@@ -56,17 +57,20 @@ def drawScene(guy, backgroundImage, plats, platColours, blocks, blockColours, en
     offset = player[SCREENX] - guy[XPOS]
     screen.blit(backgroundImage, (offset - 110,0))  #Blitting background
     
+
     for pl in plats:
         p = pl.move(offset,0)        
         draw.rect(screen,platColours,p)
     for bl in blocks:
         b = bl.move(offset,0)        
         draw.rect(screen,blockColours,b)
+
     spawnEnemies(enemies[0], enemies[1], enemies[2], enemies[3], enemies[4], enemies[5], offset)
     
     screen.blit(player[SPRITE], (player[SCREENX], guy[YPOS]))
     draw.rect(screen, GREEN, Rect(100, 50, guy[HEALTH], 20))
     draw.rect(screen, BLACK, Rect(100, 50, 100, 20), 1)
+
         
     display.flip()
 
@@ -79,10 +83,12 @@ def moveGuy(guy, limit, blocks): #Function taken and modified from the scroll in
                 freeLeft = False
         if freeLeft:
             guy[XPOS] -= 10
+
             if guy[SCREENX] > 110:
                 guy[SCREENX] -= 10
         
     if keys[K_RIGHT] and guy[XPOS] < limit[0] - 220:
+
         freeRight = True
         for b in blocks:
             if guy[HURTBOX].colliderect(Rect(b.left - 1, b.top, 1, (b.bottom - b.top))):
@@ -97,6 +103,7 @@ def moveGuy(guy, limit, blocks): #Function taken and modified from the scroll in
             guy[YSPEED] = 0
             guy[YPOS] = b.y - 20
     if keys[K_SPACE] and guy[ONGROUND] and guy[YSPEED] <= 0.7:
+
         guy[YSPEED] = -15
         guy[ONGROUND] = False
     
@@ -105,12 +112,9 @@ def moveGuy(guy, limit, blocks): #Function taken and modified from the scroll in
         
         if guy[HURTBOX].colliderect(Rect(b.left, b.bottom + 1, b.right - b.left, 1)):
             blockedUp = True #Creating ceiling for blocks
-
-        
     if blockedUp:
         guy[YSPEED] = 1.4
 
-    
 
         
 
@@ -198,6 +202,7 @@ def enemiesAction(positionsS, positionsZ, positionsB, skeletons, zombies, bats, 
     
 #defining level functions
 def hub():
+
     drawScene(player, backgrounds[0], hubPlats, (86,176,0), hubBlocks, (83, 49, 24), hubEnemies)
     moveGuy(player, levelSizes[0], hubBlocks)
     checkCollide(player, hubPlats, hubBlocks, hubEnemies)
@@ -209,6 +214,7 @@ def hub():
         print("Level: Left")
     if player[XPOS] >= 1600:
         print("Level: Right")
+
 
 #defining level variables
 hubPlats = [Rect(130, 700, 100, 10), Rect(530, 700, 100, 10), Rect(330, 550, 100, 10), Rect(130, 400, 100, 10), Rect(530, 400, 100, 10), Rect(970, 700, 100, 10), Rect(1370, 700, 100, 10), Rect(1170, 550, 100, 10), Rect(970, 400, 100, 10), Rect(1370, 400, 100, 10), Rect(750, 100, 100, 10)]
@@ -224,6 +230,7 @@ while RUNNING:
         if evt.type == QUIT: 
             RUNNING = False
     hub()
+
 
     display.flip()
 
