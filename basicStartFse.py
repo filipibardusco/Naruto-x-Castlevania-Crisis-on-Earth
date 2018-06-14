@@ -26,8 +26,8 @@ RUNNING = True
 #Loading images
 playerSprite = image.load("coffee.jpg")
 playerSprite = transform.scale(playerSprite, (20, 20))
-backgroundImages = ["hubWorldBack.jpg"]
-levelSizes = [(1820, 800), (5000, 800)] #List of the sizes of each level to use to transform each image, and set limits to how far our character can go
+backgroundImages = ["hubWorldBack.jpg", "levelUp.jpg"]
+levelSizes = [(1820, 800), (4000, 800)] #List of the sizes of each level to use to transform each image, and set limits to how far our character can go
 backgrounds = []
 for images in backgroundImages:
     backgrounds.append(image.load(images))
@@ -59,12 +59,19 @@ whipping = 0
 myClock = time.Clock()
 moving = 0
 cooldown = 0
+up = False
+left = False
+right = False
+skeletonActivation = False
+zombieActivation = False
+batActivation = False
 
 #Defining basic functions
 def drawScene(guy, backgroundImage, plats, platColours, blocks, blockColours, enemies): #Function taken and modified from the scroll in class program
     """ draws the current state of the game """
     
     global offset
+    offset = player[SCREENX] - player[XPOS]
     screen.blit(backgroundImage, (offset - 110,0))  #Blitting background
     
     for pl in plats:
@@ -93,7 +100,6 @@ def moveGuy(guy, limit, blocks): #Function taken and modified from the scroll in
     global attack
     global moving
     global cooldown
-    print(guy[HURTBOX])
     for b in blocks:
         if guy[HURTBOX].move(0, -guy[YSPEED]).colliderect(Rect(b.left, b.top - 1, b.right - b.left, 1)): #Creating floor for blocks
             guy[ONGROUND] = True
@@ -111,8 +117,8 @@ def moveGuy(guy, limit, blocks): #Function taken and modified from the scroll in
     if blockedUp:
         guy[YSPEED] = 1.4
     guy[YPOS] += guy[YSPEED]     # add current speed to Y
-    if guy[YPOS] >= SIZE[1] - PLAYERHEIGHT:
-        guy[YPOS] = SIZE[1] - PLAYERHEIGHT
+    if guy[YPOS] >= limit[1] - PLAYERHEIGHT:
+        guy[YPOS] = limit[1] - PLAYERHEIGHT
         guy[YSPEED] = 0
         guy[ONGROUND] = True
     guy[YSPEED] += .7     # add current speed to Y
@@ -284,22 +290,39 @@ def whipAttack(enemies):
         attack = False
 #defining level functions
 def hub():
+    global up
+    global left
+    global right
     if player[YPOS] <= 10:
-        print("Level: up")
+        up = True
     elif player[XPOS] <= 20:
-        print("Level: Left")
+        left = True
     elif player[XPOS] >= 1600:
-        print("Level: Right")
-    else:
-        drawScene(player, backgrounds[0], hubPlats, (86,176,0), hubBlocks, (83, 49, 24), hubEnemies)
-        moveGuy(player, levelSizes[0], hubBlocks)
-        checkCollide(player, hubPlats, hubBlocks, hubEnemies)
-    
+        right = True
+    drawScene(player, backgrounds[0], hubPlats, (86,176,0), hubBlocks, (83, 49, 24), hubEnemies)
+    moveGuy(player, levelSizes[0], hubBlocks)
+    checkCollide(player, hubPlats, hubBlocks, hubEnemies)
+def levelUp():
+    global batActivation
+    global skeletonActivation
+    global zombieZombie
+    global up
+    global offset
+    drawScene(player, backgrounds[1], upPlats, (86,176,0), upBlocks, (83, 49, 24), upEnemies)
+    moveGuy(player, levelSizes[1], upBlocks)
+    checkCollide(player, upPlats, upBlocks, upEnemies)
+    if player[XPOS] >= 3700:
+        player[SCREENX] = 500
+        player[XPOS] = 500
+        up = False
+        skeletonActivation = True
 #defining level variables
 hubPlats = [Rect(130, 700, 100, 10), Rect(530, 700, 100, 10), Rect(330, 550, 100, 10), Rect(130, 400, 100, 10), Rect(530, 400, 100, 10), Rect(970, 700, 100, 10), Rect(1370, 700, 100, 10), Rect(1170, 550, 100, 10), Rect(970, 400, 100, 10), Rect(1370, 400, 100, 10), Rect(750, 100, 100, 10)]
 hubBlocks = [Rect(-110, 0, 210, 350), Rect(-110, 450, 210, 350), Rect(750, 250, 100, 600), Rect(1500, 0, 210, 350), Rect(1500, 450, 210, 350), Rect(0, 0, 750, 50), Rect(850, 0, 970, 50)]
 hubEnemies = ([[300, 740, True, [], 2, True]], [[1200, 740, True, [], 3, True]], [[775, 200, True, [], 1, True]], True, True, True)
-
+upPlats = [Rect(630, 400, 100, 10), Rect(630, 550, 100, 10), Rect(10, 700, 700, 10), Rect(1400, 100, 200, 10), Rect(1600, 250, 100, 10), Rect(1500, 400, 350, 10)]
+upBlocks = [Rect(750, 250, 100, 600), Rect(2000, 150, 250, 700), Rect(1200, 150, 20, 20), Rect(1800, 600, 200, 75), Rect(1700, -400, 50, 700), Rect(1000, 500, 100, 10), Rect(1000, 600, 100, 10), Rect(1000, 700, 100, 10), Rect(1000, 300, 100, 10), Rect(1000, 400, 100, 10), Rect(1800, 250, 20, 20), Rect(3600, 0, 800, 600), Rect(2500, 0, 300, 500)]
+upEnemies = ([[100, 740, True, [], 2, True], [300, 740, True, [], 2, True], [400, 740, True, [], 2, True], [600, 740, True, [], 2, True]], [], [], skeletonActivation, zombieActivation, True)
 
 
 
@@ -308,8 +331,15 @@ while RUNNING:
     for evt in event.get():
         if evt.type == QUIT: 
             RUNNING = False
-    offset = player[SCREENX] - player[XPOS]
-    hub()
+    
+    if up:
+        levelUp()
+    elif left:
+        print("left")
+    elif right:
+        print("right")
+    else:
+        hub()
     myClock.tick(60)
     display.flip()
 
