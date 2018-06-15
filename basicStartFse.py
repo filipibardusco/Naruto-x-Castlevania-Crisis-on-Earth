@@ -287,9 +287,9 @@ def whipAttack(enemies):
     global cooldown
     
     if moving == -1: #checking if player last moved o the left or right and placing the whip hitbox appropriately
-        whip = (player[XPOS] - 60, player[YPOS] + 10, 60, 30)
+        whip = (player[XPOS] - 60, player[YPOS] + 10, 60, 30) #CHANGE TO MATCH SPRITE
     else:
-        whip = (player[XPOS] + 40, player[YPOS] + 10, 60, 30)
+        whip = (player[XPOS] + 40, player[YPOS] + 10, 60, 30) #CHANGE TO MATCH SPRITE
     draw.rect(screen, BLACK, Rect(whip[0] + offset, whip[1], whip[2], whip[3])) #Drawing the whip (to be changed with a picture)
     whipping += 1 #adding a counter to stop the whip from attacking after 20 frames
     hitbox = Rect(whip[0], whip[1], whip[2], whip[3]) #turning the whip into a rect object
@@ -343,9 +343,10 @@ def levelUp():
     global up
     global offset
     global hubEnemies
+    global upEnemies
     
     #clearing basic level functions
-    drawScene(player, backgrounds[1], upPlats, (86,176,0), upBlocks, (83, 49, 24), upEnemies)
+    drawScene(player, backgrounds[1], upPlats, (255, 255, 255), upBlocks, (105, 105, 105), upEnemies)
     moveGuy(player, levelSizes[1], upBlocks)
     checkCollide(player, upPlats, upBlocks, upEnemies)
     
